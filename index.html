@@ -12,4 +12,20 @@
 </midi-visualizer>
 </section>
 
+
+<section id="section2">
+  
+<h2>Custom player and visualizer style</h2>
+<midi-player
+  src="http://147.189.197.252:6000/midi"
+  sound-font="https://storage.googleapis.com/magentadata/js/soundfonts/sgm_plus"
+  loop="true"
+  visualizer="#section2 midi-visualizer">
+</midi-player>
+<midi-visualizer
+  src="http://147.189.197.252:6000/midi">
+</midi-visualizer>
+</section>
+
+
 <script src="https://cdn.jsdelivr.net/combine/npm/tone@14.7.58,npm/@magenta/music@1.23.1/es6/core.js,npm/focus-visible@5,npm/html-midi-player@1.5.0"></script>
