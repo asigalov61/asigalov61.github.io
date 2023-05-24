@@ -1,20 +1,54 @@
 <h2 style='text-align: center'>Euterpe X LIVE API Output<h2>
-<h2 style='text-align: center'>Samples generated every 5 minutes<h2>
-<p style='text-align:center;'>
-<center>
-<section id="section3">
-<midi-player
-  src="https://projectlosangeles.pythonanywhere.com/static/API_MIDI.mid"
-  sound-font="https://storage.googleapis.com/magentadata/js/soundfonts/sgm_plus"
-  visualizer="#section3 midi-visualizer">
-</midi-player>
-<midi-visualizer
-  src="https://projectlosangeles.pythonanywhere.com/static/API_MIDI.mid">
-</midi-visualizer>
-</section>
-</center>
-</p>
-<h2 style='text-align: center'>Project Los Angeles<h2>
-<h2 style='text-align: center'>Tegridy Code 2023<h2>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Online/Offline Badge</title>
+  <style>
+    .badge {
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-weight: bold;
+      text-align: center;
+    }
+    .online {
+      background-color: #42b72a;
+      color: #ffffff;
+    }
+    .offline {
+      background-color: #f44336;
+      color: #ffffff;
+    }
+  </style>
+</head>
+<body>
+  <div id="statusBadge" class="badge offline">Offline</div>
 
-<script src="https://cdn.jsdelivr.net/combine/npm/tone@14.7.58,npm/@magenta/music@1.23.1/es6/core.js,npm/focus-visible@5,npm/html-midi-player@1.5.0"></script>
+  <script>
+    function checkAPIStatus() {
+      fetch('https://api.example.com') // Replace with your API URL
+        .then(response => {
+          if (response.ok) {
+            document.getElementById('statusBadge').textContent = 'Online';
+            document.getElementById('statusBadge').classList.remove('offline');
+            document.getElementById('statusBadge').classList.add('online');
+          } else {
+            document.getElementById('statusBadge').textContent = 'Offline';
+            document.getElementById('statusBadge').classList.remove('online');
+            document.getElementById('statusBadge').classList.add('offline');
+          }
+        })
+        .catch(error => {
+          document.getElementById('statusBadge').textContent = 'Offline';
+          document.getElementById('statusBadge').classList.remove('online');
+          document.getElementById('statusBadge').classList.add('offline');
+        });
+    }
+
+    // Check the API status initially
+    checkAPIStatus();
+
+    // Check the API status every 5 seconds (adjust the interval as needed)
+    setInterval(checkAPIStatus, 5000);
+  </script>
+</body>
+</html>
