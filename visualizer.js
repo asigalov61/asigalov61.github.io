@@ -10,7 +10,7 @@ fetch("../SGM.sf3").then(async response => {
     document.getElementById("message").innerText = "SoundFont has been loaded!";
 
     // add an event listener for the file inout
-    document.getElementById("midi_input").addEventListener("change", async event => {
+    document.getElementById("midi").addEventListener("change", async event => {
         // check if any files are added
         if (!event.target.files[0]) {
             return;
