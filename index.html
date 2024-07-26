@@ -1,125 +1,25 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Euterpe X LIVE API Output</title>
-  <style>
-    body {
-      text-align: center;
-    }
-
-    /* Custom player style */
-    #section3 midi-player {
-      display: block;
-      width: inherit;
-      margin: 4px;
-      margin-bottom: 0;
-    }
-    #section3 midi-player::part(control-panel) {
-      background: #ff5;
-      border: 2px solid #000;
-      border-radius: 10px 10px 0 0;
-    }
-    #section3 midi-player::part(play-button) {
-      color: #353;
-      border: 2px solid currentColor;
-      background-color: #4d4;
-      border-radius: 20px;
-      transition: all 0.2s;
-      content: 'hello';
-    }
-    #section3 midi-player::part(play-button):hover {
-      color: #0a0;
-      background-color: #5f5;
-      border-radius: 10px;
-    }
-    #section3 midi-player::part(time) {
-      font-family: monospace;
-    }
-
-    /* Custom visualizer style */
-    #section3 midi-visualizer .piano-roll-visualizer {
-      background: #ffd;
-      border: 2px solid black;
-      border-top: none;
-      border-radius: 0 0 10px 10px;
-      margin: 4px;
-      margin-top: 0;
-      overflow: auto;
-    }
-    #section3 midi-visualizer svg rect.note {
-      opacity: 0.6;
-      stroke-width: 2;
-    }
-    #section3 midi-visualizer svg rect.note[data-instrument="0"] {
-      fill: #e22;
-      stroke: #500;
-    }
-    #section3 midi-visualizer svg rect.note[data-instrument="2"] {
-      fill: #2ee;
-      stroke: #055;
-    }
-    #section3 midi-visualizer svg rect.note[data-is-drum="true"] {
-      fill: #888;
-      stroke: #888;
-    }
-    #section3 midi-visualizer svg rect.note.active {
-      opacity: 0.9;
-      stroke: #000;
-    }
-
-    /* Download button style */
-    .download-button {
-      display: inline-block;
-      margin-top: 10px;
-      background-color: #4d4;
-      color: #fff;
-      border: none;
-      padding: 10px 20px;
-      text-align: center;
-      text-decoration: none;
-      font-size: 16px;
-      cursor: pointer;
-      border-radius: 4px;
-    }
-    .download-button:hover {
-      background-color: #5f5;
-    }
-
-    /* Enhanced h2 style */
-    h2 {
-      font-size: 28px;
-      font-weight: bold;
-      margin-top: 20px;
-      margin-bottom: 10px;
-      /* color: #4d4; */
-      text-transform: uppercase;
-    }
-
-  </style>
-  <link rel="preload" href="https://projectlosangeles.pythonanywhere.com/static/API_MIDI.mid" as="fetch" crossorigin="anonymous">
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js"></script>
 </head>
-<body>
-  <h2>Euterpe X LIVE API Output</h2>
-  <h2>Samples generated every 5 minutes</h2>
-  <div id="section3">
-    <midi-player
-      src="https://projectlosangeles.pythonanywhere.com/static/API_MIDI.mid"
-      sound-font="https://storage.googleapis.com/magentadata/js/soundfonts/sgm_plus"
-      visualizer="#section3 midi-visualizer">
-    </midi-player>
-    <midi-visualizer
-      src="https://projectlosangeles.pythonanywhere.com/static/API_MIDI.mid">
-    </midi-visualizer>
-  </div>
-  <a href="https://projectlosangeles.pythonanywhere.com/static/API_MIDI.mid" download class="download-button">
-    Download MIDI
-  </a>
-  <h2>Project Los Angeles</h2>
-  <h2>Tegridy Code 2023</h2>
+<body style="display: flex; flex-direction: column; margin: auto; align-items: center">
+  <h1 id="title">Upload the data.</h1>
+  <label for="channel">Channel</label>
+  <input id="channel" type="number" value="3">
 
-  <script src="https://cdn.jsdelivr.net/npm/tone@14.7.58"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@magenta/music@1.23.1/es6/core.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/focus-visible@5"></script>
-  <script src="https://cdn.jsdelivr.net/npm/html-midi-player@1.5.0"></script>
+  <label for="patch">Patch</label>
+  <input id="patch" type="number" value="48">
+
+  <label for="start_chord">Start chord</label>
+  <input id="start_chord" type="number" value="60">
+
+  <label for="midi">MIDI</label>
+  <input id="midi" accept=".mid" type="file">
+
+  <button type="button" id="go">Start</button>
+  <script src="src/index.js" type="module"></script>
 </body>
 </html>
