@@ -1,7 +1,7 @@
 // import the modules
-import { MIDI } from '../src/spessasynth_lib/midi_parser/midi_loader.js'
-import { Sequencer } from '../src/spessasynth_lib/sequencer/sequencer.js'
-import { Synthetizer } from '../src/spessasynth_lib/synthetizer/synthetizer.js'
+import { MIDI } from './spessasynth_lib/midi_parser/midi_loader.js'
+import { Sequencer } from './spessasynth_lib/sequencer/sequencer.js'
+import { Synthetizer } from './spessasynth_lib/synthetizer/synthetizer.js'
 
 // load the soundfont
 fetch("../SGM.sf3").then(async response => {
@@ -20,7 +20,7 @@ fetch("../SGM.sf3").then(async response => {
         const parsedMidi = new MIDI(arrayBuffer);                                               // parse the MIDI file
         const context = new AudioContext();                                              // create an audioContext
         // add the worklet
-        await context.audioWorklet.addModule("../src/spessasynth_lib/synthetizer/worklet_system/worklet_processor.js");
+        await context.audioWorklet.addModule("./spessasynth_lib/synthetizer/worklet_system/worklet_processor.js");
 
         // prepare and play
         const synth = new Synthetizer(context.destination, soundFontArrayBuffer);            // create the synthetizer
