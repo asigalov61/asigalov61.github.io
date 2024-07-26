@@ -63,7 +63,7 @@ start.onclick = async () => {
      */
     const analysers = [];
     for (let i = 0; i < 16; i++) {
-        analysers.push(context.createAnalyser()); // create analyser
+        analysers.push(ctx.createAnalyser()); // create analyser
     }
 
     // connect them to the synthesizer
