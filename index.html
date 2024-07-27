@@ -21,6 +21,10 @@
 </head>
 <body>
   <h1 id="title">Upload the MIDI</h1>
+
+  <label for="midi">MIDI</label>
+  <input id="midi" accept=".mid" type="file">
+    
   <label for="channel">Channel</label>
   <input id="channel" type="number" value="3">
 
@@ -30,12 +34,8 @@
   <label for="start_chord">Start chord</label>
   <input id="start_chord" type="number" value="60">
 
-  <label for="midi">MIDI</label>
-  <input id="midi" accept=".mid" type="file">
-
   <button type="button" id="go">Start</button>
-  <br><br>
-
+    
   <canvas id="canvas" width="500" height="500"></canvas>
   <table>
       <tbody>
