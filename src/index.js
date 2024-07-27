@@ -3,6 +3,29 @@ import { Synthetizer } from "./spessasynth_lib/synthetizer/synthetizer.js"
 import { Sequencer } from "./spessasynth_lib/sequencer/sequencer.js"
 import {MIDI} from "./spessasynth_lib/midi_parser/midi_loader.js";
 
+// Adjust this if necessary
+const VISIBLE_GAIN = 3;
+
+// add some colors (I copied them from spessasynth)
+const channelColors = [
+    'rgba(255, 99, 71, 1)',   // tomato
+    'rgba(255, 165, 0, 1)',   // orange
+    'rgba(255, 215, 0, 1)',   // gold
+    'rgba(50, 205, 50, 1)',   // limegreen
+    'rgba(60, 179, 113, 1)',  // mediumseagreen
+    'rgba(0, 128, 0, 1)',     // green
+    'rgba(0, 191, 255, 1)',   // deepskyblue
+    'rgba(65, 105, 225, 1)',  // royalblue
+    'rgba(138, 43, 226, 1)',  // blueviolet
+    'rgba(50, 120, 125, 1)',  //'rgba(218, 112, 214, 1)', // percission color
+    'rgba(255, 0, 255, 1)',   // magenta
+    'rgba(255, 20, 147, 1)',  // deeppink
+    'rgba(218, 112, 214, 1)', // orchid
+    'rgba(240, 128, 128, 1)', // lightcoral
+    'rgba(255, 192, 203, 1)', // pink
+    'rgba(255, 255, 0, 1)'    // yellow
+];
+
 const channel = document.getElementById("channel");
 const chord = document.getElementById("start_chord");
 const patch = document.getElementById("patch");
@@ -50,9 +73,10 @@ start.onclick = async () => {
     const synth = new Synthetizer(ctx.destination, sfont);
 
     // create sequencer and play
-    const seq = new Sequencer([new MIDI(mid)], synth);
+    const parsed = new MIDI(mid, midiFile.name);
+    const seq = new Sequencer([parsed], synth);
     seq.play();
-    title.innerText = "Playing"
+    title.innerText = "Playing " + parsed.midiName;
 
     // ===========================================================================================================
 
@@ -86,11 +110,14 @@ start.onclick = async () => {
             const waveData = new Float32Array(analyser.frequencyBinCount);
             // get the data from analyser
             analyser.getFloatTimeDomainData(waveData);
+
+            // set color
+            drawingContext.strokeStyle = channelColors[channelIndex % 16];
             drawingContext.beginPath();
             drawingContext.moveTo(x, y);
             for (let i = 0; i < waveData.length; i++)
             {
-                drawingContext.lineTo(x + step * i, y + waveData[i] * height);
+                drawingContext.lineTo(x + step * i, y + waveData[i] * height * VISIBLE_GAIN);
             }
             drawingContext.stroke();
         });
@@ -118,12 +145,12 @@ start.onclick = async () => {
 
     // add note on listener
     synth.eventHandler.addEvent("noteon", "demo-keyboard-note-on", event => {
-        keys[event.midiNote].style.background = "green"
+        keys[event.midiNote].style.background = channelColors[event.channel % 16];
     });
 
     // add note off listener
     synth.eventHandler.addEvent("noteoff", "demo-keyboard-note-off", event => {
         keys[event.midiNote].style.background = "white";
     })
-    
+
 }
