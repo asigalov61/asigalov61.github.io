@@ -15,12 +15,19 @@
         }
 
         label, input {
-            margin: 10px 0;
+            margin: 5px 0;
         }
 
         canvas {
             width: 100%;
             height: auto;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-bottom: 10px;
         }
     </style>
     <script type="module" src="https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js"></script>
@@ -28,17 +35,25 @@
 <body>
   <h1 id="title">Upload the MIDI</h1>
 
-  <label for="midi">MIDI</label>
-  <input id="midi" accept=".mid" type="file">
+  <div class="input-group">
+    <label for="midi">MIDI</label>
+    <input id="midi" accept=".mid" type="file">
+  </div>
     
-  <label for="channel">Channel</label>
-  <input id="channel" type="number" value="3">
+  <div class="input-group">
+    <label for="channel">Channel</label>
+    <input id="channel" type="number" value="3">
+  </div>
 
-  <label for="patch">Patch</label>
-  <input id="patch" type="number" value="48">
+  <div class="input-group">
+    <label for="patch">Patch</label>
+    <input id="patch" type="number" value="48">
+  </div>
 
-  <label for="start_chord">Start chord</label>
-  <input id="start_chord" type="number" value="60">
+  <div class="input-group">
+    <label for="start_chord">Start chord</label>
+    <input id="start_chord" type="number" value="60">
+  </div>
 
   <button type="button" id="go">Start</button>
 
