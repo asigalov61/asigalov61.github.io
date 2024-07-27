@@ -1,21 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset='UTF-8'>
-    <meta name='viewport'
-          content='width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0'>
-    <meta http-equiv='X-UA-Compatible' content='ie=edge'>
-    <link rel='icon' href='../src/website/favicon.ico'>
-    <title>SpessaSynth visualization example</title>
+    <meta charset="UTF-8">
+    <title>MIDI Melody</title>
     <style>
-        * {
-            font-family: "Noto Sans Light", "Open Sans Light", sans-serif;
+        body {
+            display: flex;
+            flex-direction: column;
+            margin: auto;
+            align-items: center;
+            max-height: 100vh;
+        }
+
+        canvas {
+            width: 100%;
+            min-height: 0;
         }
     </style>
     <script type="module" src="https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js"></script>
 </head>
-<body style="display: flex; flex-direction: column; margin: auto; align-items: center">
-  <h1 id="title">Upload the data.</h1>
+<body>
+  <h1 id="title">Upload the MIDI</h1>
   <label for="channel">Channel</label>
   <input id="channel" type="number" value="3">
 
@@ -27,18 +32,16 @@
 
   <label for="midi">MIDI</label>
   <input id="midi" accept=".mid" type="file">
+
   <button type="button" id="go">Start</button>
-  
   <br><br>
-  
+
   <canvas id="canvas" width="500" height="500"></canvas>
   <table>
       <tbody>
-        <tr id="keyboard"></tr>
+      <tr id="keyboard"></tr>
       </tbody>
   </table>
-
   <script src="src/index.js" type="module"></script>
-
 </body>
 </html>
