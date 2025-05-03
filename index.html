@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MIDI Melody Generator</title>
+  <!-- Reminder: cdn.tailwindcss.com should not be used in production -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* Import fonts */
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+    }
+
+    .gradient-bg {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .file-upload {
+      border: 2px dashed #cbd5e0;
+      transition: all 0.3s ease;
+    }
+
+    .file-upload:hover {
+      border-color: #667eea;
+      transform: translateY(-2px);
+    }
+
+    .file-upload.dragover {
+      border-color: #667eea;
+      background-color: rgba(102, 126, 234, 0.1);
+    }
+
+    .parameter-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #667eea;
+      cursor: pointer;
+    }
+
+    .result-card {
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+                  0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s ease;
+    }
+
+    .result-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+                  0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    .loading-spinner {
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Audio visualizer canvas styling */
+    #audioVisualizer {
+      background-color: #f5f7fa;
+      border-radius: 0.5rem;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+<body class="text-gray-800">
+  <div class="container mx-auto px-4 py-8 max-w-6xl">
+    <!-- Header -->
+    <header class="gradient-bg text-white rounded-xl p-6 mb-8 shadow-lg">
+      <div class="flex flex-col md:flex-row items-center justify-between">
+        <div class="mb-4 md:mb-0">
+          <h1 class="text-3xl font-bold">
+            <i class="fas fa-music mr-2"></i> MIDI Melody Generator
+          </h1>
+          <p class="mt-2 opacity-90">Transform your MIDI files with expressive melodies</p>
+        </div>
+        <div class="flex items-center space-x-2">
+          <span class="px-3 py-1 bg-white bg-opacity-20 rounded-full text-sm">Hugging Face</span>
+          <span class="px-3 py-1 bg-white bg-opacity-20 rounded-full text-sm">AI Music</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="space-y-8">
+      <!-- Input Section -->
+      <section class="bg-white rounded-xl p-6 shadow-md">
+        <h2 class="text-xl font-semibold mb-4 flex items-center">
+          <i class="fas fa-upload mr-2 text-indigo-500"></i> Upload MIDI File
+        </h2>
+        
+        <div id="fileDropArea" class="file-upload rounded-lg p-8 text-center cursor-pointer mb-6">
+          <div class="flex flex-col items-center justify-center">
+            <i class="fas fa-cloud-upload-alt text-4xl text-indigo-400 mb-3"></i>
+            <p class="font-medium">Drag &amp; drop your MIDI file here</p>
+            <p class="text-gray-500 text-sm mt-1">or click to browse files</p>
+            <input type="file" id="fileInput" class="hidden" accept=".mid,.midi">
+          </div>
+        </div>
+        
+        <div id="fileNameDisplay" class="hidden bg-gray-50 rounded-lg p-4 mb-6">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center">
+              <i class="fas fa-file-audio text-indigo-500 mr-3 text-xl"></i>
+              <div>
+                <p class="font-medium" id="fileName">sample.mid</p>
+                <p class="text-gray-500 text-sm" id="fileSize">2.4 MB</p>
+              </div>
+            </div>
+            <button id="removeFileBtn" class="text-red-500 hover:text-red-700">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Melody Parameters -->
+        <h2 class="text-xl font-semibold mb-4 mt-8 flex items-center">
+          <i class="fas fa-sliders-h mr-2 text-indigo-500"></i> Melody Parameters
+        </h2>
+        
+        <div class="space-y-6">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Melody Type</label>
+            <div class="grid grid-cols-2 gap-2">
+              <button id="expressiveBtn" class="melody-type-btn bg-indigo-100 text-indigo-700 border-indigo-300">
+                Expressive
+              </button>
+              <button id="simpleBtn" class="melody-type-btn bg-white text-gray-700 border-gray-300">
+                Simple
+              </button>
+            </div>
+          </div>
+          
+          <div>
+            <label for="channelInput" class="block text-sm font-medium text-gray-700 mb-1">Channel</label>
+            <input type="range" id="channelInput" min="0" max="15" value="0" class="w-full parameter-slider">
+            <div class="flex justify-between text-xs text-gray-500 mt-1">
+              <span>0</span>
+              <span>15</span>
+            </div>
+          </div>
+          
+          <div>
+            <label for="patchInput" class="block text-sm font-medium text-gray-700 mb-1">Patch (Instrument)</label>
+            <input type="range" id="patchInput" min="0" max="127" value="0" class="w-full parameter-slider">
+            <div class="flex justify-between text-xs text-gray-500 mt-1">
+              <span>0 (Piano)</span>
+              <span>127 (Gunshot)</span>
+            </div>
+          </div>
+          
+          <div>
+            <label for="startChordInput" class="block text-sm font-medium text-gray-700 mb-1">Start Chord</label>
+            <input type="range" id="startChordInput" min="0" max="100" value="0" class="w-full parameter-slider">
+            <div class="flex justify-between text-xs text-gray-500 mt-1">
+              <span>0%</span>
+              <span>100%</span>
+            </div>
+          </div>
+          
+          <div class="flex items-center">
+            <input type="checkbox" id="sustainInput" checked class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+            <label for="sustainInput" class="ml-2 block text-sm text-gray-700">Apply sustains</label>
+          </div>
+        </div>
+        
+        <button id="generateBtn" class="gradient-bg text-white font-medium py-3 px-6 rounded-lg w-full mt-8 hover:opacity-90 transition flex items-center justify-center">
+          <i class="fas fa-magic mr-2"></i> Generate Melody
+        </button>
+      </section>
+      
+      <!-- Results Section (Always at the bottom) -->
+      <section class="bg-white rounded-xl p-6 shadow-md">
+        <h2 class="text-xl font-semibold mb-4 flex items-center">
+          <i class="fas fa-poll mr-2 text-indigo-500"></i> Results
+        </h2>
+        
+        <div id="emptyState" class="text-center py-12">
+          <i class="fas fa-music text-4xl text-gray-300 mb-4"></i>
+          <p class="text-gray-500">Your generated melody will appear here</p>
+        </div>
+        
+        <div id="loadingState" class="hidden text-center py-12">
+          <div class="loading-spinner inline-block border-4 border-indigo-500 border-t-transparent rounded-full w-12 h-12 mb-4"></div>
+          <p class="text-gray-700">Generating your melody...</p>
+        </div>
+        
+        <div id="resultContainer" class="hidden">
+          <div class="result-card bg-indigo-50 rounded-lg p-4 mb-4">
+            <div class="flex items-center mb-3">
+              <i class="fas fa-file-audio text-indigo-500 mr-2"></i>
+              <h3 class="font-medium" id="resultTitle">Generated Melody</h3>
+            </div>
+            <audio id="audioPlayer" crossOrigin="anonymous" controls class="w-full"></audio>
+            <!-- Audio Visualizer Canvas -->
+            <canvas id="audioVisualizer" class="w-full h-48 mt-4"></canvas>
+            <div class="mt-4 flex space-x-2">
+              <button id="downloadBtn" class="flex-1 bg-white text-indigo-600 border border-indigo-300 py-2 px-4 rounded hover:bg-indigo-50 transition flex items-center justify-center">
+                <i class="fas fa-download mr-2"></i> Download
+              </button>
+              <button id="copyLinkBtn" class="flex-1 bg-white text-indigo-600 border border-indigo-300 py-2 px-4 rounded hover:bg-indigo-50 transition flex items-center justify-center">
+                <i class="fas fa-link mr-2"></i> Copy Link
+              </button>
+            </div>
+          </div>
+          
+          <div class="result-card bg-gray-50 rounded-lg p-4 mt-6">
+            <h3 class="font-medium mb-3 flex items-center">
+              <i class="fas fa-info-circle text-indigo-500 mr-2"></i> Generation Details
+            </h3>
+            <div class="space-y-2 text-sm">
+              <div class="flex justify-between">
+                <span class="text-gray-600">Melody Type:</span>
+                <span id="detailType" class="font-medium">Expressive</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Channel:</span>
+                <span id="detailChannel" class="font-medium">0</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Instrument:</span>
+                <span id="detailPatch" class="font-medium">Piano (0)</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Start Chord:</span>
+                <span id="detailStart" class="font-medium">0%</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Sustains:</span>
+                <span id="detailSustain" class="font-medium">Enabled</span>
+              </div>
+            </div>
+            <div id="outputSummary" class="mt-4 text-sm text-gray-700"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+    
+    <!-- Footer -->
+    <footer class="mt-12 text-center text-gray-500 text-sm">
+      <p>Powered by Hugging Face Spaces • MIDI Melody Generator</p>
+      <p class="mt-1">Upload your MIDI file to generate beautiful melodies with AI</p>
+    </footer>
+  </div>
+
+  <!-- Module Script -->
+  <script type="module">
+    import { Client, handle_file } from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
+    
+    document.addEventListener('DOMContentLoaded', async function() {
+      // DOM Elements
+      const fileDropArea = document.getElementById('fileDropArea');
+      const fileInput = document.getElementById('fileInput');
+      const fileNameDisplay = document.getElementById('fileNameDisplay');
+      const fileName = document.getElementById('fileName');
+      const fileSize = document.getElementById('fileSize');
+      const removeFileBtn = document.getElementById('removeFileBtn');
+      const generateBtn = document.getElementById('generateBtn');
+      const emptyState = document.getElementById('emptyState');
+      const loadingState = document.getElementById('loadingState');
+      const resultContainer = document.getElementById('resultContainer');
+      const audioPlayer = document.getElementById('audioPlayer');
+      const downloadBtn = document.getElementById('downloadBtn');
+      const copyLinkBtn = document.getElementById('copyLinkBtn');
+      const expressiveBtn = document.getElementById('expressiveBtn');
+      const simpleBtn = document.getElementById('simpleBtn');
+      const channelInput = document.getElementById('channelInput');
+      const patchInput = document.getElementById('patchInput');
+      const startChordInput = document.getElementById('startChordInput');
+      const sustainInput = document.getElementById('sustainInput');
+      const detailType = document.getElementById('detailType');
+      const detailChannel = document.getElementById('detailChannel');
+      const detailPatch = document.getElementById('detailPatch');
+      const detailStart = document.getElementById('detailStart');
+      const detailSustain = document.getElementById('detailSustain');
+      const resultTitle = document.getElementById('resultTitle');
+      const outputSummary = document.getElementById('outputSummary');
+      const audioVisualizer = document.getElementById('audioVisualizer');
+      
+      let selectedFile = null;
+      let melodyType = 'Expressive';
+      let generatedMidiFileUrl = null;
+      
+      // Connect to the Gradio backend
+      const gradioClient = await Client.connect("asigalov61/MIDI-Melody");
+      
+      // Event Listeners
+      fileDropArea.addEventListener('click', () => fileInput.click());
+      fileInput.addEventListener('change', handleFileSelect);
+      removeFileBtn.addEventListener('click', removeFile);
+      generateBtn.addEventListener('click', generateMelody);
+      expressiveBtn.addEventListener('click', () => setMelodyType('Expressive'));
+      simpleBtn.addEventListener('click', () => setMelodyType('Simple'));
+      downloadBtn.addEventListener('click', downloadResult);
+      copyLinkBtn.addEventListener('click', copyResultLink);
+      
+      // Drag and drop events
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        fileDropArea.addEventListener(eventName, preventDefaults, false);
+      });
+      
+      ['dragenter', 'dragover'].forEach(eventName => {
+        fileDropArea.addEventListener(eventName, highlight, false);
+      });
+      
+      ['dragleave', 'drop'].forEach(eventName => {
+        fileDropArea.addEventListener(eventName, unhighlight, false);
+      });
+      
+      fileDropArea.addEventListener('drop', handleDrop, false);
+      
+      // Parameter change events
+      channelInput.addEventListener('input', updateDetails);
+      patchInput.addEventListener('input', updateDetails);
+      startChordInput.addEventListener('input', updateDetails);
+      sustainInput.addEventListener('change', updateDetails);
+      
+      // Audio visualizer variables
+      let audioCtx, analyser, source;
+      const canvasCtx = audioVisualizer.getContext("2d");
+      
+      function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      
+      function highlight() {
+        fileDropArea.classList.add('dragover');
+      }
+      
+      function unhighlight() {
+        fileDropArea.classList.remove('dragover');
+      }
+      
+      function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        if (files.length) {
+          handleFile(files[0]);
+        }
+      }
+      
+      function handleFileSelect(e) {
+        const files = e.target.files;
+        if (files.length) {
+          handleFile(files[0]);
+        }
+      }
+      
+      function handleFile(file) {
+        if (!file.name.match(/\.(mid|midi)$/i)) {
+          alert('Please upload a MIDI file (.mid or .midi)');
+          return;
+        }
+        selectedFile = file;
+        fileName.textContent = file.name;
+        fileSize.textContent = formatFileSize(file.size);
+        fileNameDisplay.classList.remove('hidden');
+        
+        generateBtn.classList.remove('opacity-50');
+        generateBtn.disabled = false;
+      }
+      
+      function removeFile() {
+        selectedFile = null;
+        fileInput.value = '';
+        fileNameDisplay.classList.add('hidden');
+        generateBtn.classList.add('opacity-50');
+        generateBtn.disabled = true;
+      }
+      
+      function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+      }
+      
+      function setMelodyType(type) {
+        melodyType = type;
+        if (type === 'Expressive') {
+          expressiveBtn.classList.add('bg-indigo-100', 'text-indigo-700', 'border-indigo-300');
+          expressiveBtn.classList.remove('bg-white', 'text-gray-700', 'border-gray-300');
+          simpleBtn.classList.add('bg-white', 'text-gray-700', 'border-gray-300');
+          simpleBtn.classList.remove('bg-indigo-100', 'text-indigo-700', 'border-indigo-300');
+        } else {
+          simpleBtn.classList.add('bg-indigo-100', 'text-indigo-700', 'border-indigo-300');
+          simpleBtn.classList.remove('bg-white', 'text-gray-700', 'border-gray-300');
+          expressiveBtn.classList.add('bg-white', 'text-gray-700', 'border-gray-300');
+          expressiveBtn.classList.remove('bg-indigo-100', 'text-indigo-700', 'border-indigo-300');
+        }
+        updateDetails();
+      }
+      
+      async function generateMelody() {
+        if (!selectedFile) return;
+        
+        emptyState.classList.add('hidden');
+        loadingState.classList.remove('hidden');
+        resultContainer.classList.add('hidden');
+        
+        try {
+          const normalizedName = selectedFile.name;
+          const correctedFile = new File([selectedFile], normalizedName, { 
+            type: "audio/midi", 
+            lastModified: selectedFile.lastModified 
+          });
+          
+          const tempBlob = handle_file(correctedFile);
+          const file_ref = new File(
+            [tempBlob],
+            correctedFile.name,
+            { type: "audio/midi", lastModified: correctedFile.lastModified }
+          );
+          
+          const result = await gradioClient.predict("/AddMelody", {
+            input_midi: file_ref,
+            input_mel_type: melodyType,
+            input_channel: parseInt(channelInput.value),
+            input_patch: parseInt(patchInput.value),
+            input_start_chord: parseInt(startChordInput.value),
+            input_apply_sustains: sustainInput.checked,
+          });
+          
+          const [outputTitle, outputSummaryText, outputMidiFile, outputMidiAudio, outputMidiScorePlot] = result.data;
+          loadingState.classList.add('hidden');
+          resultContainer.classList.remove('hidden');
+          
+          resultTitle.textContent = outputTitle || "Generated Melody";
+          outputSummary.textContent = outputSummaryText || "";
+          
+          if (outputMidiAudio) {
+            let audioUrl;
+            if (typeof outputMidiAudio === "object" && outputMidiAudio.url) {
+              audioUrl = outputMidiAudio.url;
+            } else if (outputMidiAudio instanceof Blob) {
+              audioUrl = URL.createObjectURL(outputMidiAudio);
+            } else if (typeof outputMidiAudio === "string") {
+              audioUrl = outputMidiAudio;
+            } else {
+              console.error("Unexpected type for outputMidiAudio:", outputMidiAudio);
+            }
+            audioPlayer.src = audioUrl;
+          }
+          
+          if (outputMidiFile) {
+            let midiUrl;
+            if (typeof outputMidiFile === "object" && outputMidiFile.url) {
+              midiUrl = outputMidiFile.url;
+            } else if (outputMidiFile instanceof Blob) {
+              midiUrl = URL.createObjectURL(outputMidiFile);
+            } else if (typeof outputMidiFile === "string") {
+              midiUrl = outputMidiFile;
+            } else {
+              console.error("Unexpected type for outputMidiFile:", outputMidiFile);
+            }
+            generatedMidiFileUrl = midiUrl;
+          }
+          
+          let plotImg = document.getElementById("midiScorePlot");
+          if (!plotImg) {
+            plotImg = document.createElement("img");
+            plotImg.id = "midiScorePlot";
+            plotImg.className = "w-full mt-4";
+            resultContainer.appendChild(plotImg);
+          }
+          if (outputMidiScorePlot) {
+            let plotUrl;
+            if (typeof outputMidiScorePlot === "object" && outputMidiScorePlot.plot) {
+              plotUrl = outputMidiScorePlot.plot;
+            } else if (outputMidiScorePlot instanceof Blob) {
+              plotUrl = URL.createObjectURL(outputMidiScorePlot);
+            } else if (typeof outputMidiScorePlot === "string") {
+              plotUrl = outputMidiScorePlot;
+            } else {
+              console.error("Unexpected type for outputMidiScorePlot:", outputMidiScorePlot);
+              return;
+            }
+            plotImg.src = plotUrl;
+          }
+          updateDetails();
+        } catch (error) {
+          console.error("Error generating melody:", error);
+          loadingState.classList.add('hidden');
+          emptyState.classList.remove('hidden');
+          alert("Error generating melody. Please try again.");
+        }
+      }
+      
+      function updateDetails() {
+        detailType.textContent = melodyType;
+        detailChannel.textContent = channelInput.value;
+        
+        const patchNumber = parseInt(patchInput.value);
+        let instrumentName = "Piano";
+        if (patchNumber >= 0 && patchNumber <= 7) instrumentName = "Piano";
+        else if (patchNumber >= 8 && patchNumber <= 15) instrumentName = "Chromatic Percussion";
+        else if (patchNumber >= 16 && patchNumber <= 23) instrumentName = "Organ";
+        else if (patchNumber >= 24 && patchNumber <= 31) instrumentName = "Guitar";
+        else if (patchNumber >= 32 && patchNumber <= 39) instrumentName = "Bass";
+        else if (patchNumber >= 40 && patchNumber <= 47) instrumentName = "Strings";
+        else if (patchNumber >= 48 && patchNumber <= 55) instrumentName = "Ensemble";
+        else if (patchNumber >= 56 && patchNumber <= 63) instrumentName = "Brass";
+        else if (patchNumber >= 64 && patchNumber <= 71) instrumentName = "Reed";
+        else if (patchNumber >= 72 && patchNumber <= 79) instrumentName = "Pipe";
+        else if (patchNumber >= 80 && patchNumber <= 87) instrumentName = "Synth Lead";
+        else if (patchNumber >= 88 && patchNumber <= 95) instrumentName = "Synth Pad";
+        else if (patchNumber >= 96 && patchNumber <= 103) instrumentName = "Synth Effects";
+        else if (patchNumber >= 104 && patchNumber <= 111) instrumentName = "Ethnic";
+        else if (patchNumber >= 112 && patchNumber <= 119) instrumentName = "Percussive";
+        else if (patchNumber >= 120 && patchNumber <= 127) instrumentName = "Sound Effects";
+        
+        detailPatch.textContent = `${instrumentName} (${patchNumber})`;
+        detailStart.textContent = `${startChordInput.value}%`;
+        detailSustain.textContent = sustainInput.checked ? "Enabled" : "Disabled";
+      }
+      
+      function downloadResult() {
+        if (generatedMidiFileUrl) {
+          const a = document.createElement("a");
+          a.href = generatedMidiFileUrl;
+          a.download = resultTitle.textContent || "melody.mid";
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        } else {
+          alert("No generated file available for download.");
+        }
+      }
+      
+      function copyResultLink() {
+        if (generatedMidiFileUrl) {
+          navigator.clipboard.writeText(generatedMidiFileUrl)
+            .then(() => alert("Download link copied to clipboard!"))
+            .catch(() => alert("Failed to copy the link."));
+        } else {
+          alert("No generated link available to copy.");
+        }
+      }
+      
+      // Setup the audio visualizer when playback starts
+      audioPlayer.addEventListener('play', () => {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          analyser = audioCtx.createAnalyser();
+          analyser.fftSize = 256;
+          source = audioCtx.createMediaElementSource(audioPlayer);
+          source.connect(analyser);
+          analyser.connect(audioCtx.destination);
+          visualize();
+        }
+      });
+      
+      function visualize() {
+        const bufferLength = analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+        
+        function draw() {
+          requestAnimationFrame(draw);
+          analyser.getByteFrequencyData(dataArray);
+          canvasCtx.fillStyle = "#f5f7fa";
+          canvasCtx.fillRect(0, 0, audioVisualizer.width, audioVisualizer.height);
+          
+          const barWidth = (audioVisualizer.width / bufferLength) * 2.5;
+          let barHeight;
+          let x = 0;
+          
+          for(let i = 0; i < bufferLength; i++) {
+            barHeight = dataArray[i];
+            const red = barHeight + 25;
+            const green = 250 - barHeight;
+            const blue = 50;
+            canvasCtx.fillStyle = `rgb(${red}, ${green}, ${blue})`;
+            canvasCtx.fillRect(x, audioVisualizer.height - barHeight/2, barWidth, barHeight/2);
+            x += barWidth + 1;
+          }
+        }
+        draw();
+      }
+      
+      // Initialize details on page load
+      updateDetails();
+    });
+  </script>
+</body>
+</html>
